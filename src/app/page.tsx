@@ -9,18 +9,68 @@ import { ChevronRight, Zap, ShieldCheck, Award, Globe, ArrowRight, Search, Truck
 import Link from "next/link";
 
 export default function Home() {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
+    }
+  };
+
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 1, ease: [0.16, 1, 0.3, 1] }
+    }
+  };
+
   return (
     <div className="bg-white min-h-screen">
 
-      <div className="pt-20">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="pt-20"
+      >
         {/* Market Intelligence Layer - Keep but optimize speed if needed */}
-        <TrendingSlider products={products.slice(0, 10)} />
+        <motion.div variants={itemVariants}>
+          <TrendingSlider products={products.slice(0, 10)} />
+        </motion.div>
 
         {/* Re-imagined Hero: B2B Efficiency & Trust */}
         <section className="relative min-h-[85vh] flex items-center bg-white pt-10 pb-20 overflow-hidden">
           {/* Subtle Background - Improved Depth */}
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-rose-50/30 blur-[150px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
-          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-slate-50/50 blur-[120px] rounded-full pointer-events-none translate-y-1/2 -translate-x-1/4"></div>
+          <motion.div
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            className="absolute top-0 right-0 w-[800px] h-[800px] bg-rose-50/30 blur-[150px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/4"
+          ></motion.div>
+          <motion.div
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.5, 0.7, 0.5],
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-slate-50/50 blur-[120px] rounded-full pointer-events-none translate-y-1/2 -translate-x-1/4"
+          ></motion.div>
 
           <div className="container-fluid-custom relative z-10 w-full">
             <div className="grid lg:grid-cols-12 gap-16 xl:gap-24 items-center">
@@ -28,8 +78,7 @@ export default function Home() {
               {/* Main Narrative - Column 1-7 */}
               <div className="lg:col-span-7 space-y-10">
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  variants={itemVariants}
                   className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-slate-50 border border-slate-100"
                 >
                   <div className="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></div>
@@ -40,19 +89,15 @@ export default function Home() {
 
                 <div className="space-y-6">
                   <motion.h1
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    variants={itemVariants}
                     className="text-[clamp(2.5rem,7vw,5.5rem)] font-black text-slate-950 leading-[0.9] tracking-tighter"
                   >
                     THE DIGITAL <br />
-                    <span className="text-slate-200 italic">BRIDGE</span> TO <br />
+                    <span className="text-slate-200 italic font-medium leading-tight">BRIDGE</span> TO <br />
                     GUANGZHOU.
                   </motion.h1>
                   <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.1 }}
+                    variants={itemVariants}
                     className="text-slate-500 text-lg xl:text-xl max-w-2xl font-medium leading-relaxed tracking-tight"
                   >
                     Direct access to China&apos;s elite manufacturing sector. Verified logistics, integrated trade finance, and end-to-end supply chain governance for the Nepal market.
@@ -61,9 +106,7 @@ export default function Home() {
 
                 {/* Integrated Search for B2B Utility */}
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
+                  variants={itemVariants}
                   className="relative max-w-2xl group"
                 >
                   <div className="absolute -inset-1 bg-gradient-to-r from-rose-600 to-slate-900 rounded-[2rem] blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
@@ -82,7 +125,10 @@ export default function Home() {
                   </div>
                 </motion.div>
 
-                <div className="flex flex-wrap items-center gap-12 pt-4">
+                <motion.div
+                  variants={itemVariants}
+                  className="flex flex-wrap items-center gap-12 pt-4"
+                >
                   <div className="flex flex-col">
                     <span className="text-3xl font-black text-slate-950 tracking-tighter">$2.4M+</span>
                     <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-1">Trade Today</span>
@@ -97,15 +143,13 @@ export default function Home() {
                     <span className="text-3xl font-black text-slate-950 tracking-tighter">12H</span>
                     <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-1">RFQ Response</span>
                   </div>
-                </div>
+                </motion.div>
               </div>
 
               {/* Visual Anchor - Column 8-12 */}
               <div className="lg:col-span-5 relative hidden lg:block">
                 <motion.div
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+                  variants={itemVariants}
                   className="relative group"
                 >
                   <div className="aspect-[4/5] rounded-[3rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border-8 border-white/50 relative">
@@ -119,7 +163,12 @@ export default function Home() {
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"></div>
 
                     {/* Floating Analytics Card */}
-                    <div className="absolute bottom-10 left-10 right-10 p-8 glass-dark rounded-[2rem] border border-white/10">
+                    <motion.div
+                      initial={{ y: 20, opacity: 0 }}
+                      whileInView={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.5, duration: 0.8 }}
+                      className="absolute bottom-10 left-10 right-10 p-8 glass-dark rounded-[2rem] border border-white/10"
+                    >
                       <div className="flex items-center justify-between mb-4">
                         <div className="space-y-1">
                           <span className="block text-[8px] font-black uppercase tracking-[0.3em] text-white/40">Market Authority</span>
@@ -134,7 +183,7 @@ export default function Home() {
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                         <span className="text-white/80 text-[11px] font-medium">99.8% Factory Compliance Record</span>
                       </div>
-                    </div>
+                    </motion.div>
                   </div>
                 </motion.div>
               </div>
@@ -145,7 +194,15 @@ export default function Home() {
         {/* B2B Core Features - Why it's "Best Tier" */}
         <section className="py-20 bg-slate-50/50 border-y border-slate-100">
           <div className="container-fluid-custom">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+              variants={{
+                visible: { transition: { staggerChildren: 0.15 } }
+              }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-12"
+            >
               {[
                 {
                   icon: ShieldCheck,
@@ -166,15 +223,19 @@ export default function Home() {
                   color: "emerald"
                 }
               ].map((feature, i) => (
-                <div key={i} className="group p-10 rounded-[3rem] bg-white border border-slate-100 transition-all hover:shadow-2xl hover:shadow-slate-200/50 hover:-translate-y-2">
+                <motion.div
+                  key={i}
+                  variants={itemVariants}
+                  className="group p-10 rounded-[3rem] bg-white border border-slate-100 transition-all hover:shadow-2xl hover:shadow-slate-200/50 hover:-translate-y-2"
+                >
                   <div className={`w-14 h-14 rounded-2xl bg-${feature.color}-50 text-${feature.color}-600 flex items-center justify-center mb-8 transition-colors group-hover:bg-rose-600 group-hover:text-white`}>
                     <feature.icon size={28} />
                   </div>
                   <h3 className="text-xl font-black text-slate-950 mb-4 tracking-tight">{feature.title}</h3>
                   <p className="text-slate-500 text-sm font-medium leading-relaxed">{feature.desc}</p>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
 
@@ -184,7 +245,13 @@ export default function Home() {
             <div className="flex flex-col lg:flex-row gap-16 lg:gap-24">
               {/* Refined B2B Sidebar */}
               <aside className="lg:w-80 shrink-0">
-                <div className="sticky top-40 space-y-8">
+                <motion.div
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={sectionVariants}
+                  className="sticky top-40 space-y-8"
+                >
                   <div className="p-10 rounded-[3.5rem] bg-slate-950 text-white shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-rose-600/20 blur-3xl"></div>
                     <div className="relative z-10 flex flex-col items-start gap-6">
@@ -218,39 +285,50 @@ export default function Home() {
                       ))}
                     </nav>
                   </div>
-                </div>
+                </motion.div>
               </aside>
 
               {/* Enhanced Product Grid - High Visibility */}
               <div className="flex-1">
-                <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end mb-16 gap-8">
+                <motion.div
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={sectionVariants}
+                  className="flex flex-col xl:flex-row justify-between items-start xl:items-end mb-16 gap-8"
+                >
                   <div className="max-w-xl">
                     <div className="inline-block px-4 py-1.5 bg-rose-50 text-rose-600 rounded-full text-[9px] font-black uppercase tracking-[0.3em] mb-6 border border-rose-100">
                       Live Inventory Tracker
                     </div>
                     <h2 className="text-4xl lg:text-7xl font-black text-slate-950 tracking-tighter leading-none mb-6">
-                      Institutional <br /><span className="text-slate-200 italic">Grade Stocks.</span>
+                      Institutional <br /><span className="text-slate-200 italic font-medium leading-[1.1]">Grade Stocks.</span>
                     </h2>
                     <p className="text-lg text-slate-500 font-medium tracking-tight">Direct procurement from verified factories in the Guangzhou-Pearl River Delta region.</p>
                   </div>
                   <Link href="/products" className="btn-modern btn-modern-outline bg-white px-10 h-14 rounded-2xl group no-underline border-slate-200 hover:border-rose-600">
                     Explore All <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform" />
                   </Link>
-                </div>
+                </motion.div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+                <motion.div
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-50px" }}
+                  variants={{
+                    visible: { transition: { staggerChildren: 0.1 } }
+                  }}
+                  className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8"
+                >
                   {products.slice(0, 9).map((product, idx) => (
                     <motion.div
                       key={product.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: idx * 0.05 }}
+                      variants={itemVariants}
                     >
                       <ProductCard product={product} />
                     </motion.div>
                   ))}
-                </div>
+                </motion.div>
               </div>
             </div>
           </div>
@@ -262,11 +340,16 @@ export default function Home() {
 
           <div className="container-fluid-custom relative z-10">
             <div className="grid lg:grid-cols-2 gap-20 items-center">
-              <div>
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={sectionVariants}
+              >
                 <div className="w-16 h-16 rounded-2xl bg-rose-600/10 border border-rose-600/20 flex items-center justify-center mb-10">
                   <Zap size={28} className="text-rose-600" />
                 </div>
-                <h2 className="text-5xl lg:text-8xl font-black text-white leading-[0.9] tracking-tighter mb-10">Fast-Track <br /><span className="text-rose-600 italic">Sourcing.</span></h2>
+                <h2 className="text-5xl lg:text-8xl font-black text-white leading-[0.9] tracking-tighter mb-10">Fast-Track <br /><span className="text-rose-600 italic font-medium">Sourcing.</span></h2>
                 <div className="space-y-8">
                   <div className="flex gap-6 items-start">
                     <div className="w-1.5 h-12 bg-rose-600 rounded-full mt-1"></div>
@@ -284,11 +367,13 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, scale: 0.95, x: 20 }}
+                whileInView={{ opacity: 1, scale: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
                 className="bg-white p-12 lg:p-16 rounded-[4rem] shadow-2xl relative group"
               >
                 <div className="absolute -top-6 -right-6 w-20 h-20 bg-rose-600 rounded-3xl flex items-center justify-center shadow-xl rotate-12 transition-transform group-hover:rotate-0">
@@ -298,7 +383,7 @@ export default function Home() {
                 <div className="space-y-8">
                   <div className="space-y-3">
                     <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-2">Industrial Category</label>
-                    <input type="text" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-slate-950 font-bold focus:outline-none focus:border-rose-600 transition-all" placeholder="e.g. Injection Molding Machine" />
+                    <input type="text" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-slate-950 font-bold focus:outline-none focus:border-rose-600 transition-all font-sans" placeholder="e.g. Injection Molding Machine" />
                   </div>
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-3">
@@ -320,7 +405,7 @@ export default function Home() {
             </div>
           </div>
         </section>
-      </div>
+      </motion.div>
     </div>
   );
 }

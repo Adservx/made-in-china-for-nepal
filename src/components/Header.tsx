@@ -42,7 +42,12 @@ export default function Header() {
   const tickerProducts = [...products.slice(0, 8)];
 
   return (
-    <header className="fixed top-0 left-0 w-full z-[100] transition-all duration-500">
+    <motion.header
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ type: "spring", damping: 20, stiffness: 100, delay: 0.1 }}
+      className="fixed top-0 left-0 w-full z-[100] transition-all duration-500"
+    >
       {/* 1. Professional Navigation Bar */}
       <div className={`w-full transition-all duration-500 border-b ${isScrolled ? "bg-white/90 backdrop-blur-2xl border-slate-200/60 shadow-xl shadow-slate-200/20" : "bg-white/98 backdrop-blur-xl border-slate-100 shadow-sm"}`}>
         <div className="mx-auto max-w-[1536px] px-8 flex items-center h-20">
@@ -191,7 +196,7 @@ export default function Header() {
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </motion.header>
   );
 }
 

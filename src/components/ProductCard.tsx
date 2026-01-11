@@ -8,6 +8,8 @@ interface ProductCardProps {
   product: any; // Using any for compatibility during migration
 }
 
+import { motion } from "framer-motion";
+
 export default function ProductCard({ product }: ProductCardProps) {
   const image = product.image_url || product.image || "/placeholder.jpg";
   const name = product.name;
@@ -18,7 +20,11 @@ export default function ProductCard({ product }: ProductCardProps) {
   const supplier = product.supplier;
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-[2rem] overflow-hidden border border-slate-100 transition-all duration-500 hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] group">
+    <motion.div
+      whileHover={{ y: -8, scale: 1.01 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="flex flex-col h-full bg-white rounded-[2rem] overflow-hidden border border-slate-100 transition-all duration-500 hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] group"
+    >
       {/* Image Container - Using Next.js Image */}
       <Link href={`/product/${product.id}`} className="block relative aspect-square overflow-hidden bg-slate-50">
         <Image
@@ -26,7 +32,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           alt={name}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="object-cover transition-transform duration-700 group-hover:scale-105"
+          className="object-cover transition-transform duration-700 group-hover:scale-110"
         />
 
         {/* Floating Category */}
@@ -80,7 +86,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </Link>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

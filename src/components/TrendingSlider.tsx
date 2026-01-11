@@ -23,6 +23,8 @@ const TrendingSlider: React.FC<TrendingSliderProps> = ({ products }) => {
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
                             className="flex items-center gap-4 mb-4"
                         >
                             <div className="w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center shadow-lg shadow-rose-100">
@@ -30,13 +32,27 @@ const TrendingSlider: React.FC<TrendingSliderProps> = ({ products }) => {
                             </div>
                             <span className="text-[9px] font-black tracking-[0.3em] uppercase text-rose-600">Institutional Feed</span>
                         </motion.div>
-                        <h2 className="text-4xl lg:text-7xl font-black text-slate-950 m-0 tracking-tighter leading-none">Market <span className="text-slate-200 italic">Velocity.</span></h2>
+                        <motion.h2
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, delay: 0.1 }}
+                            className="text-4xl lg:text-7xl font-black text-slate-950 m-0 tracking-tighter leading-none"
+                        >
+                            Market <span className="text-slate-200 italic font-medium">Velocity.</span>
+                        </motion.h2>
                     </div>
-                    <div className="lg:w-1/3">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                        className="lg:w-1/3"
+                    >
                         <p className="text-slate-400 text-base font-medium tracking-tight">
                             Live trade signals from Guangzhou&apos;s industrial core directly to Kathmandu&apos;s business infrastructure.
                         </p>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
 
@@ -47,38 +63,40 @@ const TrendingSlider: React.FC<TrendingSliderProps> = ({ products }) => {
 
                 <div className="flex gap-8 px-6">
                     <motion.div
-                        className="flex gap-8 pr-8 shrink-0"
+                        className="flex gap-8 pr-8 shrink-0 transform-gpu"
+                        style={{ willChange: "transform" }}
                         animate={{ x: ["0%", "-50%"] }}
                         transition={{
-                            duration: products.length * 5, // Consistent speed based on item count
+                            duration: products.length * 8, // Slightly slower for smoother perception
                             ease: "linear",
                             repeat: Infinity,
                         }}
                     >
                         {displayProducts.map((product, idx) => (
-                            <div key={`${product.id}-${idx}`} className="flex-shrink-0 w-[400px] group">
+                            <div key={`${product.id}-${idx}`} className="flex-shrink-0 w-[420px] group">
                                 <Link href={`/product/${product.id}`} className="block no-underline">
-                                    <div className="relative aspect-[16/10] rounded-[2.5rem] overflow-hidden bg-slate-50 border border-slate-100 transition-all duration-500 group-hover:shadow-2xl">
+                                    <div className="relative aspect-[16/10] rounded-[2.5rem] overflow-hidden bg-slate-50 border border-slate-100 transition-shadow duration-500 group-hover:shadow-2xl">
                                         <Image
                                             src={product.image}
                                             alt={product.name}
                                             fill
-                                            sizes="400px"
-                                            className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                            sizes="420px"
+                                            className="object-cover transform-gpu"
+                                            loading={idx < 4 ? "eager" : "lazy"}
                                         />
 
-                                        {/* Minimalist Overlay */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent"></div>
+                                        {/* Simplified Overlay - Removed Blur for Performance */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
 
                                         <div className="absolute top-6 left-6">
-                                            <div className="px-3 py-1.5 rounded-lg glass-effect bg-white/10 backdrop-blur-md border border-white/10 flex items-center gap-2">
+                                            <div className="px-3 py-1.5 rounded-lg bg-slate-950/40 border border-white/10 flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></div>
                                                 <span className="text-[8px] font-black uppercase tracking-widest text-white">{product.category}</span>
                                             </div>
                                         </div>
 
                                         <div className="absolute bottom-8 left-8 right-8">
-                                            <div className="flex items-center gap-3 text-rose-500 mb-2 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 text-xs">
+                                            <div className="flex items-center gap-3 text-rose-500 mb-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 text-xs">
                                                 <ShieldCheck size={12} fill="currentColor" className="text-emerald-500 fill-emerald-500" />
                                                 <span className="text-[8px] font-black text-emerald-400 uppercase tracking-[0.2em]">Verified Manufacturer</span>
                                             </div>
