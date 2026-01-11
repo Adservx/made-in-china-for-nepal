@@ -1,149 +1,198 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, ShoppingCart, User, Globe, Menu, Phone, FileText, Truck, Smartphone, LogOut } from "lucide-react";
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  ShoppingCart,
+  User,
+  Menu,
+  X,
+  LogOut,
+  UserCircle,
+  TrendingUp,
+  ChevronRight,
+  Zap,
+  Globe,
+  LayoutGrid
+} from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
+import { products } from "@/data/products";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Header() {
-  const [searchQuery, setSearchQuery] = useState("");
   const { cart, user, logout } = useAppContext();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
+  // Prepare products for the ticker - reduce cloning for performance
+  const tickerProducts = [...products.slice(0, 8)];
+
   return (
-    <header className="sticky-top bg-white shadow-sm" style={{ zIndex: 1000 }}>
-      {/* Top Bar */}
-      <div className="bg-light py-2 border-bottom d-none d-md-block">
-        <div className="container d-flex justify-content-between align-items-center fs-7 text-muted">
-          <div className="d-flex align-items-center gap-3">
-            <span className="d-flex align-items-center gap-1 text-danger fw-medium">
-              <Smartphone size={14} /> Download App
-            </span>
-            <span className="border-start ps-3">Welcome to Made-in-China for Nepal!</span>
-          </div>
-          <div className="d-flex gap-3 align-items-center">
-            {user ? (
-              <div className="d-flex align-items-center gap-3">
-                <span className="fw-bold text-dark">Hi, {user.name}</span>
-                <button onClick={logout} className="btn btn-link btn-sm p-0 text-muted hover-danger text-decoration-none d-flex align-items-center gap-1">
-                  <LogOut size={14} /> Logout
-                </button>
+    <header className="fixed top-0 left-0 w-full z-[100] transition-all duration-500">
+      {/* 1. Professional Navigation Bar */}
+      <div className={`w-full transition-all duration-500 border-b ${isScrolled ? "bg-white/90 backdrop-blur-2xl border-slate-200/60 shadow-xl shadow-slate-200/20" : "bg-white/98 backdrop-blur-xl border-slate-100 shadow-sm"}`}>
+        <div className="mx-auto max-w-[1536px] px-8 flex items-center h-20">
+
+          {/* 1. Left Section: Elite Brand Signature */}
+          <div className="shrink-0">
+            <Link href="/" className="flex items-center gap-4 no-underline group">
+              {/* Industrial 'M' Signature Mark */}
+              <div className="relative shrink-0">
+                <div className={`w-10 h-10 rounded-sm flex items-center justify-center border-t border-l transition-all duration-500 bg-slate-950 border-white/20 shadow-2xl`}>
+                  <div className="flex items-end gap-[3px] pt-1">
+                    <div className="w-[3px] h-5 bg-white rounded-t-[1px]"></div>
+                    <div className="w-[3px] h-3 bg-rose-600 rounded-t-[1px]"></div>
+                    <div className="w-[3px] h-5 bg-white rounded-t-[1px]"></div>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <>
-                <Link href="/login" className="text-decoration-none text-muted hover-danger">Sign In</Link>
-                <span className="text-muted">|</span>
-                <Link href="/register" className="text-decoration-none text-muted hover-danger">Join Free</Link>
-              </>
-            )}
-            <div className="vr mx-2"></div>
-            <Link href="/tracking" className="text-decoration-none text-muted d-flex align-items-center gap-1 hover-danger">
-              <Truck size={14} /> Order Tracking
-            </Link>
-            <Link href="#" className="text-decoration-none text-muted d-flex align-items-center gap-1 hover-danger">
-              <Globe size={14} /> English / NPR
+
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1">
+                  <span className="text-lg font-black tracking-[-0.03em] text-slate-950">
+                    MADE IN CHINA
+                  </span>
+                  <span className="text-rose-600 text-lg font-black mx-0.5">/</span>
+                  <span className="text-lg font-black tracking-[-0.03em] text-slate-400">
+                    NEPAL
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 -mt-0.5">
+                  <span className="text-[6px] font-black uppercase tracking-[0.5em] text-slate-950 opacity-40">
+                    INSTITUTIONAL GRADE
+                  </span>
+                  <div className="w-6 h-[1px] bg-rose-600/30"></div>
+                </div>
+              </div>
             </Link>
           </div>
-        </div>
-      </div>
 
-      {/* Main Navbar */}
-      <nav className="navbar navbar-expand-lg py-3">
-        <div className="container">
-          <Link href="/" className="navbar-brand fw-bold text-danger d-flex align-items-center me-lg-5">
-            <div className="d-flex flex-column align-items-start lh-1">
-              <span className="fs-3">MADE-IN-CHINA</span>
-              <span className="badge bg-danger text-white rounded-pill px-2 py-1 fs-7 mt-1">FOR NEPAL</span>
+          {/* 2. Center Section: Desktop Nav Links - Perfectly Balanced */}
+          <div className="flex-1 flex justify-center px-12">
+            <nav className="hidden xl:flex items-center gap-10">
+              {[
+                { label: 'Marketplace', href: '/products' },
+                { label: 'RFQ Sourcing', href: '/rfq' },
+                { label: 'Supply Chain', href: '/logistics' },
+                { label: 'Verified Factories', href: '/factories' }
+              ].map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="relative text-[11px] font-black uppercase tracking-[0.2em] no-underline transition-all group py-1 text-slate-500 hover:text-slate-900"
+                >
+                  <span className="relative z-10 transition-colors duration-300 group-hover:text-rose-600">
+                    {item.label}
+                  </span>
+                  <span className={`absolute -bottom-1 left-0 w-full h-[2px] transition-all duration-300 origin-left scale-x-[0.15] group-hover:scale-x-100 bg-slate-200 group-hover:bg-rose-600`}></span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          {/* 3. Right Section: Action Strategy Group */}
+          <div className="flex items-center gap-6 shrink-0">
+            {/* Minimalist Integrated Search */}
+            <div className={`hidden lg:flex relative h-10 w-64 transition-all duration-500 group ${searchFocused ? "w-80" : ""}`}>
+              <div className="absolute inset-0 rounded-full border transition-all duration-300 bg-slate-50 border-slate-200 group-hover:border-slate-300 group-hover:bg-slate-100/50"></div>
+              <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors group-hover:scale-110 duration-300 text-slate-400 group-hover:text-rose-600" />
+              <input
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+                className="w-full h-full bg-transparent border-none focus:ring-0 text-[11px] font-medium pl-10 pr-4 rounded-full text-slate-950 placeholder:text-slate-500"
+                placeholder="Search solutions..."
+              />
             </div>
-          </Link>
 
-          <div className="d-flex d-lg-none gap-2">
-            <button className="btn btn-link text-dark p-1">
-              <Search size={24} />
-            </button>
-            <Link href="/cart" className="btn btn-link text-dark p-1 position-relative">
-              <ShoppingCart size={24} />
-              {cartCount > 0 && (
-                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{fontSize: '0.6rem'}}>
-                  {cartCount}
-                </span>
+            <div className="flex items-center gap-4">
+              {/* Intelligence Cart */}
+              <Link href="/cart" className="relative group no-underline">
+                <div className="p-2.5 rounded-full transition-all duration-300 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                  <ShoppingCart size={17} className="group-hover:scale-105 transition-transform" />
+                </div>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-[8px] font-black rounded-full w-4 h-4 flex items-center justify-center ring-2 ring-white">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* Secure Auth Access */}
+              <div className="h-6 w-[1px] bg-slate-200 hidden sm:block mx-1"></div>
+
+              {user ? (
+                <Link href="/account" className="flex items-center gap-3 p-0.5 rounded-full hover:opacity-80 transition-opacity no-underline group">
+                  <Avatar className="h-9 w-9 border border-rose-600/30 group-hover:border-rose-600 transition-colors">
+                    <AvatarImage src={user.user_metadata?.avatar_url} />
+                    <AvatarFallback className="bg-rose-600 text-white font-bold text-[10px]">{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Link>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <Link
+                    href="/login"
+                    className="hidden sm:block text-[10px] font-black uppercase tracking-[0.15em] no-underline transition-all relative group text-slate-500 hover:text-slate-900"
+                  >
+                    <span className="relative z-10 transition-colors duration-300 group-hover:text-rose-600">Login</span>
+                    <span className="absolute -bottom-1 left-0 w-full h-[1px] transition-all duration-300 origin-left scale-x-[0.2] group-hover:scale-x-100 bg-slate-300 group-hover:bg-rose-600"></span>
+                  </Link>
+                  <Link href="/register" className="h-10 px-6 rounded-full flex items-center justify-center transition-all bg-rose-600 text-white hover:bg-rose-700 hover:scale-[1.02] active:scale-95 shadow-lg shadow-rose-900/10 text-[10px] font-black uppercase tracking-widest no-underline">
+                    Join Network
+                  </Link>
+                </div>
               )}
-            </Link>
-            <button className="btn btn-link text-dark p-1">
-              <Menu size={24} />
-            </button>
-          </div>
 
-          <div className="collapse navbar-collapse" id="navbarContent">
-            {/* Search Bar */}
-            <div className="mx-auto w-100 px-lg-4" style={{ maxWidth: '650px' }}>
-              <div className="input-group border border-2 border-danger rounded-pill overflow-hidden">
-                <button className="btn btn-light dropdown-toggle border-0 ps-3 pe-2 text-muted fw-medium" type="button">
-                  Products
-                </button>
-                <input
-                  type="text"
-                  className="form-control border-0 px-3"
-                  placeholder="What are you looking for?"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button className="btn btn-danger px-4 m-0 fw-bold d-flex align-items-center gap-2">
-                  <Search size={18} /> <span className="d-none d-md-inline">Search</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Right Nav Icons */}
-            <ul className="navbar-nav ms-auto align-items-center gap-4">
-              <li className="nav-item">
-                <Link href="/" className="nav-link d-flex flex-column align-items-center text-center p-0 text-secondary hover-danger">
-                  <FileText size={22} className="mb-1" />
-                  <span className="fs-7 fw-medium">Post RFQ</span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link href={user ? "/account" : "/login"} className="nav-link d-flex flex-column align-items-center text-center p-0 text-secondary hover-danger">
-                  <User size={22} className="mb-1" />
-                  <span className="fs-7 fw-medium">{user ? "Account" : "Sign In"}</span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link href="/cart" className="nav-link d-flex flex-column align-items-center text-center p-0 text-secondary hover-danger position-relative">
-                  <ShoppingCart size={22} className="mb-1" />
-                  {cartCount > 0 && (
-                    <span className="position-absolute top-0 end-0 badge rounded-pill bg-danger border border-light p-1" style={{ fontSize: '0.6rem', transform: 'translate(40%, -10%)' }}>
-                      {cartCount}
-                    </span>
-                  )}
-                  <span className="fs-7 fw-medium">Cart</span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
-
-      {/* Categories Bar */}
-      <div className="bg-white border-top d-none d-lg-block">
-        <div className="container">
-          <div className="d-flex align-items-center gap-4 py-2">
-            <div className="dropdown">
-              <button className="btn btn-danger rounded-pill d-flex align-items-center gap-2 px-4 fw-bold">
-                <Menu size={18} /> All Categories
+              <button className="xl:hidden p-2.5 rounded-full transition-all bg-slate-50 text-slate-950" onClick={() => setIsMobileMenuOpen(true)}>
+                <Menu size={20} />
               </button>
             </div>
-            <div className="d-flex gap-4 fw-medium text-secondary fs-7">
-              <Link href="#" className="text-decoration-none text-dark hover-danger">Top Ranking</Link>
-              <Link href="#" className="text-decoration-none text-dark hover-danger">New Arrivals</Link>
-              <Link href="#" className="text-decoration-none text-dark hover-danger">Trade Shows</Link>
-              <Link href="#" className="text-decoration-none text-dark hover-danger">Logistics Services</Link>
-              <Link href="#" className="text-decoration-none text-dark hover-danger">Help Center</Link>
-            </div>
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 bg-slate-950 z-[200] flex flex-col p-8"
+          >
+            <div className="flex items-center justify-between mb-16">
+              <span className="text-xl font-black text-white tracking-tighter">MIC<span className="text-rose-600">.</span>NEPAL</span>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white border-none"><X size={20} /></button>
+            </div>
+            <nav className="flex flex-col gap-6">
+              {['Catalog', 'Sourcing', 'Logistics', 'Account'].map((item) => (
+                <Link key={item} href={`/${item.toLowerCase()}`} onClick={() => setIsMobileMenuOpen(false)} className="text-4xl font-black text-white no-underline tracking-tighter hover:text-rose-600 transition-colors uppercase italic">{item}</Link>
+              ))}
+            </nav>
+            <div className="mt-auto pt-8">
+              <Link href="/rfq" className="w-full btn-modern-primary py-4 rounded-xl text-center no-underline text-xs flex items-center justify-center gap-2">
+                <Zap size={14} fill="currentColor" /> POST RFQ
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
+
+

@@ -1,0 +1,84 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { AdminSidebar } from "@/components/admin/Sidebar";
+import {
+    Bell,
+    Search,
+    HelpCircle
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+export default async function AdminLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    const supabase = await createClient();
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        return redirect("/login");
+    }
+
+    // Check role
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+    if (!profile || (profile.role !== "admin" && profile.role !== "super_admin")) {
+        return redirect("/");
+    }
+
+    return (
+        <div className="min-h-screen bg-[#F8FAFC]">
+            <AdminSidebar />
+            <div className="lg:pl-64 flex flex-col min-h-screen">
+                {/* Top Header */}
+                <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-bottom border-slate-200 h-20 px-8 flex items-center justify-between">
+                    <div className="flex items-center flex-1 max-w-xl">
+                        <div className="relative w-full group">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#D81B12] transition-colors" />
+                            <Input
+                                placeholder="Search anything in admin..."
+                                className="w-full pl-10 bg-slate-100 border-none focus:bg-white h-11 rounded-2xl text-sm font-medium"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3 ml-8">
+                        <Button variant="ghost" size="icon" className="text-slate-500 rounded-xl hover:bg-slate-100 relative">
+                            <Bell className="w-5 h-5" />
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-slate-500 rounded-xl hover:bg-slate-100">
+                            <HelpCircle className="w-5 h-5" />
+                        </Button>
+                        <div className="h-8 w-[1px] bg-slate-200 mx-2"></div>
+                        <div className="flex items-center space-x-3 pl-2">
+                            <div className="text-right hidden sm:block">
+                                <p className="text-sm font-bold text-slate-900">{user.user_metadata?.full_name || 'Admin User'}</p>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{profile.role}</p>
+                            </div>
+                            <Avatar className="h-10 w-10 rounded-xl border-2 border-slate-100 ring-2 ring-white shadow-sm">
+                                <AvatarImage src={user.user_metadata?.avatar_url} />
+                                <AvatarFallback className="bg-[#9E0F09] text-white font-bold">{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Content */}
+                <main className="flex-1 p-8">
+                    {children}
+                </main>
+            </div>
+        </div>
+    );
+}

@@ -1,56 +1,91 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Product } from '@/data/products';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { User } from '@supabase/supabase-js';
+import { Database } from '@/types/database.types';
 
-interface CartItem extends Product {
-  quantity: number;
-}
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
-interface User {
+interface CartItem {
+  id: string;
   name: string;
-  email: string;
+  price: number;
+  image: string;
+  quantity: number;
 }
 
 interface AppContextType {
   cart: CartItem[];
-  addToCart: (product: Product, quantity?: number) => void;
+  addToCart: (product: { id: string; name: string; price?: any; price_min?: any; image?: string; image_url?: string }, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   user: User | null;
-  login: (user: User) => void;
-  logout: () => void;
+  profile: Profile | null;
+  isAdmin: boolean;
+  loading: boolean;
+  logout: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      const savedCart = localStorage.getItem('mic_cart');
+      return savedCart ? JSON.parse(savedCart) : [];
+    }
+    return [];
+  });
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    const savedCart = localStorage.getItem('mic_cart');
-    const savedUser = localStorage.getItem('mic_user');
-    if (savedCart) setCart(JSON.parse(savedCart));
-    if (savedUser) setUser(JSON.parse(savedUser));
-  }, []);
+  const fetchProfile = useCallback(async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
-  // Sync with localStorage
+    if (!error && data) {
+      setProfile(data);
+    }
+  }, [supabase]);
+
+  // Auth Listener
   useEffect(() => {
-    localStorage.setItem('mic_cart', JSON.stringify(cart));
+    // Supabase Auth Listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+
+        if (currentUser) {
+          await fetchProfile(currentUser.id);
+        } else {
+          setProfile(null);
+        }
+
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase, fetchProfile]);
+
+  // Sync cart with localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mic_cart', JSON.stringify(cart));
+    }
   }, [cart]);
 
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('mic_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('mic_user');
-    }
-  }, [user]);
-
-  const addToCart = (product: Product, quantity: number = 1) => {
+  const addToCart = (product: { id: string; name: string; price?: any; price_min?: any; image?: string; image_url?: string }, quantity: number = 1) => {
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
@@ -58,7 +93,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
         );
       }
-      return [...prev, { ...product, quantity }];
+      return [...prev, {
+        id: product.id,
+        name: product.name,
+        price: product.price_min || product.price || 0,
+        image: product.image_url || product.image || "/placeholder.jpg",
+        quantity
+      }];
     });
   };
 
@@ -78,8 +119,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => setCart([]);
 
-  const login = (userData: User) => setUser(userData);
-  const logout = () => setUser(null);
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
+  };
+
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   return (
     <AppContext.Provider
@@ -90,7 +136,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateQuantity,
         clearCart,
         user,
-        login,
+        profile,
+        isAdmin,
+        loading,
         logout,
       }}
     >

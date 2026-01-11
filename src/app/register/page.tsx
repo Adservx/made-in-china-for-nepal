@@ -1,124 +1,169 @@
 "use client";
 
 import Link from "next/link";
-import { Check } from "lucide-react";
 import { useState } from "react";
-import { useAppContext } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
+
+const formSchema = z.object({
+  fullName: z.string().min(2, {
+    message: "Full name must be at least 2 characters.",
+  }),
+  companyName: z.string().min(2, {
+    message: "Company name must be at least 2 characters.",
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
+  password: z.string().min(6, {
+    message: "Password must be at least 6 characters.",
+  }),
+});
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    mobile: "",
-    password: ""
-  });
-  const { login } = useAppContext();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const supabase = createClient();
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.email && formData.firstName) {
-      login({
-        name: formData.firstName,
-        email: formData.email
-      });
-      router.push('/');
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      fullName: "",
+      companyName: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signUp({
+      email: values.email,
+      password: values.password,
+      options: {
+        data: {
+          full_name: values.fullName,
+          company_name: values.companyName,
+        },
+      },
+    });
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+    } else {
+      router.push("/login?message=Registration successful! Please sign in.");
     }
-  };
+  }
 
   return (
-    <div className="container py-5 my-5">
-      <div className="row justify-content-center">
-        <div className="col-lg-8">
-          <div className="card border-0 shadow-lg overflow-hidden">
-            <div className="row g-0">
-               <div className="col-md-5 bg-danger text-white p-5 d-flex flex-column justify-content-center">
-                  <h4 className="fw-bold mb-4">Why Join Us?</h4>
-                  <ul className="list-unstyled d-flex flex-column gap-3">
-                     <li className="d-flex gap-2"><div className="bg-white bg-opacity-25 rounded-circle p-1"><Check size={16}/></div> Get tailored quotes in 24h</li>
-                     <li className="d-flex gap-2"><div className="bg-white bg-opacity-25 rounded-circle p-1"><Check size={16}/></div> Access verified suppliers</li>
-                     <li className="d-flex gap-2"><div className="bg-white bg-opacity-25 rounded-circle p-1"><Check size={16}/></div> Track orders in real-time</li>
-                     <li className="d-flex gap-2"><div className="bg-white bg-opacity-25 rounded-circle p-1"><Check size={16}/></div> Exclusive deals & coupons</li>
-                  </ul>
-               </div>
-               <div className="col-md-7">
-                  <div className="card-body p-5">
-                    <h3 className="fw-bold mb-4">Create Account</h3>
-                    <form onSubmit={handleRegister}>
-                      <div className="row g-3">
-                        <div className="col-md-6">
-                           <label className="form-label small text-muted">First Name</label>
-                           <input 
-                              type="text" 
-                              className="form-control bg-light border-0" 
-                              required
-                              value={formData.firstName}
-                              onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                           />
-                        </div>
-                        <div className="col-md-6">
-                           <label className="form-label small text-muted">Last Name</label>
-                           <input 
-                              type="text" 
-                              className="form-control bg-light border-0" 
-                              required
-                              value={formData.lastName}
-                              onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                           />
-                        </div>
-                        <div className="col-12">
-                           <label className="form-label small text-muted">Email Address</label>
-                           <input 
-                              type="email" 
-                              className="form-control bg-light border-0" 
-                              required
-                              value={formData.email}
-                              onChange={(e) => setFormData({...formData, email: e.target.value})}
-                           />
-                        </div>
-                        <div className="col-12">
-                           <label className="form-label small text-muted">Mobile Number</label>
-                           <input 
-                              type="tel" 
-                              className="form-control bg-light border-0" 
-                              required
-                              value={formData.mobile}
-                              onChange={(e) => setFormData({...formData, mobile: e.target.value})}
-                           />
-                        </div>
-                        <div className="col-12">
-                           <label className="form-label small text-muted">Password</label>
-                           <input 
-                              type="password" 
-                              className="form-control bg-light border-0" 
-                              required
-                              value={formData.password}
-                              onChange={(e) => setFormData({...formData, password: e.target.value})}
-                           />
-                        </div>
-                        <div className="col-12">
-                           <div className="form-check">
-                             <input className="form-check-input" type="checkbox" id="terms" required />
-                             <label className="form-check-label small text-muted" htmlFor="terms">
-                               I agree to the <Link href="#" className="text-decoration-none">Terms of Service</Link> and <Link href="#" className="text-decoration-none">Privacy Policy</Link>
-                             </label>
-                           </div>
-                        </div>
-                        <div className="col-12 mt-4">
-                          <button type="submit" className="btn btn-danger w-100 fw-bold py-3">Register Now</button>
-                        </div>
-                        <div className="col-12 text-center small text-muted mt-3">
-                          Already have an account? <Link href="/login" className="text-danger fw-bold text-decoration-none">Sign In</Link>
-                        </div>
-                      </div>
-                    </form>
-                  </div>
-               </div>
+    <div className="container relative flex flex-col items-center justify-center min-vh-100 py-12 px-4 sm:px-6 lg:px-8 bg-slate-50/50">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          <Link href="/" className="inline-block mb-8">
+            <div className="flex flex-col items-center text-center leading-none">
+              <span className="text-3xl font-black tracking-tighter text-[#D81B12]">MADE-IN-CHINA</span>
+              <span className="bg-[#D81B12] text-white rounded-full px-3 py-1 text-[10px] mt-1 font-bold tracking-widest uppercase">FOR NEPAL</span>
             </div>
-          </div>
+          </Link>
         </div>
+
+        <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-xl">
+          <CardHeader className="space-y-1 pb-6">
+            <CardTitle className="text-2xl font-bold tracking-tight text-center">Create Account</CardTitle>
+            <CardDescription className="text-center text-slate-500">
+              Join Nepal&apos;s leading B2B sourcing platform
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ms-1">Full Name</label>
+                  <Input
+                    {...form.register("fullName")}
+                    placeholder="John Doe"
+                    className="bg-slate-100/50 border-slate-200 focus:bg-white transition-all h-12"
+                  />
+                  {form.formState.errors.fullName && (
+                    <p className="text-xs text-red-500 font-medium ms-1">{form.formState.errors.fullName.message}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ms-1">Company</label>
+                  <Input
+                    {...form.register("companyName")}
+                    placeholder="Acme Inc."
+                    className="bg-slate-100/50 border-slate-200 focus:bg-white transition-all h-12"
+                  />
+                  {form.formState.errors.companyName && (
+                    <p className="text-xs text-red-500 font-medium ms-1">{form.formState.errors.companyName.message}</p>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ms-1">Email Address</label>
+                <Input
+                  {...form.register("email")}
+                  placeholder="name@company.com"
+                  type="email"
+                  className="bg-slate-100/50 border-slate-200 focus:bg-white transition-all h-12"
+                />
+                {form.formState.errors.email && (
+                  <p className="text-xs text-red-500 font-medium ms-1">{form.formState.errors.email.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ms-1">Password</label>
+                <Input
+                  {...form.register("password")}
+                  placeholder="••••••••"
+                  type="password"
+                  className="bg-slate-100/50 border-slate-200 focus:bg-white transition-all h-12"
+                />
+                {form.formState.errors.password && (
+                  <p className="text-xs text-red-500 font-medium ms-1">{form.formState.errors.password.message}</p>
+                )}
+              </div>
+
+              {error && (
+                <Alert variant="destructive" className="bg-red-50 border-red-100 text-red-600">
+                  <AlertDescription className="text-xs font-medium">{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button type="submit" className="w-full h-12 bg-[#D81B12] hover:bg-[#9E0F09] text-white font-bold text-base shadow-lg shadow-red-200 mt-4" disabled={loading}>
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create Account"}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4 pb-8">
+            <p className="text-sm text-center text-slate-500">
+              Already have an account?{" "}
+              <Link href="/login" className="font-bold text-[#D81B12] hover:underline">
+                Sign In
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );

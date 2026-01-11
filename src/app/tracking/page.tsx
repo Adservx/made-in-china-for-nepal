@@ -145,14 +145,14 @@ export default function TrackingPage() {
                            {/* Map Overlays (Only show if route exists and active) */}
                            {trackingData.route && trackingData.status === 'In Transit' && (
                                <>
-                                   <div className="position-absolute top-0 start-0 w-100 p-3 z-3 pointer-events-none">
+                                   <div className="position-absolute top-0 start-0 w-100 p-3 z-3 pe-none">
                                        <div className="bg-white shadow-sm rounded-pill p-2 px-3 d-inline-flex align-items-center gap-2 border border-primary border-opacity-25">
                                            <div className="spinner-grow spinner-grow-sm text-primary" role="status"></div>
                                            <span className="fw-bold small text-primary">LIVE SATELLITE</span>
                                        </div>
                                    </div>
 
-                                   <div className="position-absolute bottom-0 start-0 w-100 p-3 z-3 pointer-events-none">
+                                   <div className="position-absolute bottom-0 start-0 w-100 p-3 z-3 pe-none">
                                       <div className="card border-0 shadow-lg bg-white bg-opacity-95 backdrop-blur w-100">
                                          <div className="card-body py-3">
                                             <div className="row align-items-center text-center">
