@@ -18,41 +18,40 @@ const TrendingSlider: React.FC<TrendingSliderProps> = ({ products }) => {
     return (
         <section className="pt-8 pb-20 relative overflow-hidden bg-white">
             <div className="container-fluid-custom mb-12">
-                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
-                    <div className="max-w-3xl">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8 }}
-                            className="flex items-center gap-4 mb-4"
-                        >
-                            <div className="w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center shadow-lg shadow-rose-100">
-                                <TrendingUp size={16} className="text-white" />
-                            </div>
-                            <span className="text-[9px] font-black tracking-[0.3em] uppercase text-rose-600">Institutional Feed</span>
-                        </motion.div>
+                <div className="flex flex-col gap-4">
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="flex items-center gap-2.5 self-start"
+                    >
+                        <div className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></div>
+                        <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-slate-400 font-mono">Live Protocol</span>
+                    </motion.div>
+
+                    <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
                         <motion.h2
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: 0.8, delay: 0.1 }}
-                            className="text-4xl lg:text-7xl font-black text-slate-950 m-0 tracking-tighter leading-none"
+                            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                            className="text-2xl lg:text-4xl font-black text-slate-950 tracking-tighter leading-none"
                         >
-                            Market <span className="text-slate-200 italic font-medium">Velocity.</span>
+                            Global Assets. <span className="text-rose-600 italic font-medium">Direct Sourcing.</span>
                         </motion.h2>
+
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 1, delay: 0.2 }}
+                            className="lg:max-w-xs"
+                        >
+                            <p className="text-slate-400 text-sm font-medium leading-relaxed tracking-tight">
+                                Curated industrial flow from China hubs, optimized for Nepal.
+                            </p>
+                        </motion.div>
                     </div>
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                        className="lg:w-1/3"
-                    >
-                        <p className="text-slate-400 text-base font-medium tracking-tight">
-                            Live trade signals from Guangzhou&apos;s industrial core directly to Kathmandu&apos;s business infrastructure.
-                        </p>
-                    </motion.div>
                 </div>
             </div>
 
