@@ -1,37 +1,75 @@
 "use client";
 
 import ProductCard from "@/components/ProductCard";
-import { products, categories } from "@/data/products";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Filter, Zap, ChevronRight, Search } from "lucide-react";
+import { Filter, Zap, Search, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { Suspense } from "react";
+import { createClient } from "@/lib/supabase/client";
 
-export default function ProductsPage() {
+function ProductsPageContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const [products, setProducts] = useState<any[]>([]);
+    const [categories, setCategories] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState("recommended");
     const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+
+    const supabase = createClient();
 
     useEffect(() => {
         setSearchQuery(searchParams.get("q") || "");
     }, [searchParams]);
 
-    const filteredProducts = products.filter((p) => {
-        const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
-        const matchesSearch = searchQuery
-            ? p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.supplier.toLowerCase().includes(searchQuery.toLowerCase())
-            : true;
-        return matchesCategory && matchesSearch;
-    }).sort((a, b) => {
-        if (sortBy === "price-low") return a.price - b.price;
-        if (sortBy === "price-high") return b.price - a.price;
-        return 0;
-    });
+    useEffect(() => {
+        async function fetchData() {
+            setLoading(true);
+            try {
+                // Fetch Categories
+                const { data: categoriesData } = await supabase
+                    .from("categories")
+                    .select("*")
+                    .order("name");
+                setCategories(categoriesData || []);
+
+                // Start building products query
+                let query = supabase
+                    .from("products")
+                    .select("*, categories(name)");
+
+                if (selectedCategory) {
+                    query = query.eq("category_id", selectedCategory);
+                }
+
+                if (searchQuery) {
+                    query = query.or(`name.ilike.%${searchQuery}%,supplier.ilike.%${searchQuery}%`);
+                }
+
+                const { data: productsData, error } = await query;
+
+                if (error) throw error;
+
+                let sortedData = [...(productsData || [])];
+                if (sortBy === "price-low") {
+                    sortedData.sort((a, b) => (a.price_min || 0) - (b.price_min || 0));
+                } else if (sortBy === "price-high") {
+                    sortedData.sort((a, b) => (b.price_max || 0) - (a.price_max || 0));
+                }
+
+                setProducts(sortedData);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchData();
+    }, [selectedCategory, searchQuery, sortBy, supabase]);
 
     return (
         <div className="bg-white min-h-screen pt-32 pb-24">
@@ -81,11 +119,11 @@ export default function ProductsPage() {
                                     </button>
                                     {categories.map((cat) => (
                                         <button
-                                            key={cat}
-                                            onClick={() => setSelectedCategory(cat)}
-                                            className={`w-full text-left px-5 py-3.5 rounded-xl text-[13px] font-bold transition-all border-none ${selectedCategory === cat ? "bg-slate-950 text-white shadow-lg" : "bg-transparent text-slate-500 hover:bg-rose-50 hover:text-rose-600"}`}
+                                            key={cat.id}
+                                            onClick={() => setSelectedCategory(cat.id)}
+                                            className={`w-full text-left px-5 py-3.5 rounded-xl text-[13px] font-bold transition-all border-none ${selectedCategory === cat.id ? "bg-slate-950 text-white shadow-lg" : "bg-transparent text-slate-500 hover:bg-rose-50 hover:text-rose-600"}`}
                                         >
-                                            {cat}
+                                            {cat.name}
                                         </button>
                                     ))}
                                 </div>
@@ -111,10 +149,10 @@ export default function ProductsPage() {
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 pb-8 border-b border-slate-100 gap-6">
                             <div>
                                 <h3 className="text-2xl font-black text-slate-950 tracking-tighter mb-1">
-                                    {selectedCategory || "Full Inventory"}
+                                    {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name : "Full Inventory"}
                                 </h3>
                                 <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">
-                                    {filteredProducts.length} Verified Manufacturers
+                                    {products.length} Verified Manufacturers
                                 </p>
                             </div>
                             <div className="flex items-center gap-4 w-full sm:w-auto">
@@ -125,11 +163,6 @@ export default function ProductsPage() {
                                         placeholder="Search catalog..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                router.push(`/products?q=${encodeURIComponent(searchQuery)}`);
-                                            }
-                                        }}
                                         className="w-full bg-slate-50 border border-slate-200 rounded-full py-2.5 pl-11 pr-4 text-xs font-bold focus:outline-none focus:border-rose-500/50 focus:bg-white transition-all shadow-inner"
                                     />
                                 </div>
@@ -145,32 +178,49 @@ export default function ProductsPage() {
                             </div>
                         </div>
 
-                        {/* Product Grid - Perfectly Aligned */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-                            {filteredProducts.map((product, idx) => (
-                                <motion.div
-                                    key={product.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.4, delay: idx * 0.05 }}
-                                >
-                                    <ProductCard product={product} />
-                                </motion.div>
-                            ))}
-                        </div>
-
-                        {filteredProducts.length === 0 && (
-                            <div className="text-center py-24 bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-200">
-                                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                                    <Filter size={24} className="text-slate-300" />
-                                </div>
-                                <h4 className="font-black text-slate-400 text-lg">No matches found</h4>
-                                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-2">Adjust your filters to see more manufacturers</p>
+                        {/* Product Grid */}
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-40 gap-4">
+                                <Loader2 className="w-10 h-10 text-rose-600 animate-spin" />
+                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Accessing Factory Assets...</p>
                             </div>
+                        ) : (
+                            <>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+                                    {products.map((product, idx) => (
+                                        <motion.div
+                                            key={product.id}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.4, delay: idx * 0.05 }}
+                                        >
+                                            <ProductCard product={product} />
+                                        </motion.div>
+                                    ))}
+                                </div>
+
+                                {products.length === 0 && (
+                                    <div className="text-center py-24 bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-200">
+                                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                                            <Filter size={24} className="text-slate-300" />
+                                        </div>
+                                        <h4 className="font-black text-slate-400 text-lg">No matches found</h4>
+                                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-2">Adjust your filters to see more manufacturers</p>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </main>
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function ProductsPage() {
+    return (
+        <Suspense fallback={null}>
+            <ProductsPageContent />
+        </Suspense>
     );
 }

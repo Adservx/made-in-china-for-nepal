@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useState, useEffect } from "react";
 import {
     Package,
@@ -14,7 +12,8 @@ import {
     Eye,
     ExternalLink,
     ChevronRight,
-    ChevronLeft
+    ChevronLeft,
+    Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,12 +67,24 @@ export default function AdminProductsPage() {
     const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [isAdding, setIsAdding] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
+
+    const [editingProduct, setEditingProduct] = useState<any>(null);
+    const [formData, setFormData] = useState({
+        name: "",
+        category_id: "",
+        price_min: "",
+        price_max: "",
+        min_order: "",
+        supplier: "",
+        image_url: "",
+        description: "",
+        currency: "USD"
+    });
+
     const { toast } = useToast();
     const supabase = createClient();
-
-    useEffect(() => {
-        fetchData();
-    }, []);
 
     async function fetchData() {
         try {
@@ -99,6 +110,122 @@ export default function AdminProductsPage() {
         }
     }
 
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    function openAddDialog() {
+        setEditingProduct(null);
+        setFormData({
+            name: "",
+            category_id: "",
+            price_min: "",
+            price_max: "",
+            min_order: "",
+            supplier: "",
+            image_url: "",
+            description: "",
+            currency: "USD"
+        });
+        setDialogOpen(true);
+    }
+
+    function openEditDialog(product: any) {
+        setEditingProduct(product);
+        setFormData({
+            name: product.name,
+            category_id: product.category_id,
+            price_min: product.price_min?.toString() || "",
+            price_max: product.price_max?.toString() || "",
+            min_order: product.min_order || "",
+            supplier: product.supplier || "",
+            image_url: product.image_url || "",
+            description: product.description || "",
+            currency: product.currency || "USD"
+        });
+        setDialogOpen(true);
+    }
+
+    async function handleSaveProduct() {
+        if (!formData.name || !formData.category_id || !formData.price_min) {
+            toast({
+                title: "Incomplete Form",
+                description: "Please fill in all required fields (Name, Category, Min Price).",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            setIsAdding(true);
+            const payload = {
+                name: formData.name,
+                category_id: formData.category_id,
+                price_min: parseFloat(formData.price_min),
+                price_max: formData.price_max ? parseFloat(formData.price_max) : null,
+                min_order: formData.min_order,
+                supplier: formData.supplier,
+                image_url: formData.image_url,
+                description: formData.description,
+                currency: formData.currency,
+                is_active: true,
+            };
+
+            if (editingProduct) {
+                const { error } = await supabase
+                    .from("products")
+                    .update(payload)
+                    .eq("id", editingProduct.id);
+                if (error) throw error;
+                toast({
+                    title: "Product Updated",
+                    description: `${formData.name} has been updated.`,
+                });
+            } else {
+                const { error } = await supabase
+                    .from("products")
+                    .insert([{ ...payload, rating: 4.5 }]);
+                if (error) throw error;
+                toast({
+                    title: "Product Created",
+                    description: `${formData.name} has been added to the catalog.`,
+                });
+            }
+
+            setDialogOpen(false);
+            fetchData();
+        } catch (error: any) {
+            toast({
+                title: editingProduct ? "Error updating product" : "Error creating product",
+                description: error.message,
+                variant: "destructive",
+            });
+        } finally {
+            setIsAdding(false);
+        }
+    }
+
+    async function handleDeleteProduct(id: string) {
+        if (!confirm("Are you sure you want to delete this product?")) return;
+
+        try {
+            const { error } = await supabase.from("products").delete().eq("id", id);
+            if (error) throw error;
+
+            toast({
+                title: "Product Deleted",
+                description: "The product has been removed from the catalog.",
+            });
+            fetchData();
+        } catch (error: any) {
+            toast({
+                title: "Error deleting product",
+                description: error.message,
+                variant: "destructive",
+            });
+        }
+    }
+
     const filteredProducts = products.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.supplier?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -112,23 +239,28 @@ export default function AdminProductsPage() {
                     <p className="text-slate-500 font-medium">Manage your inventory, prices, and suppliers.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Button variant="outline" className="rounded-xl border-slate-200 h-11 px-6 font-bold text-xs uppercase tracking-widest">
-                        Export JSON
+                    <Button variant="outline" className="rounded-xl border-slate-200 h-11 px-6 font-bold text-xs uppercase tracking-widest" onClick={fetchData}>
+                        Refresh Ledger
                     </Button>
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button className="bg-[#D81B12] hover:bg-[#9E0F09] rounded-xl shadow-lg shadow-red-100 h-11 px-6 flex items-center gap-2 font-bold text-xs uppercase tracking-widest">
-                                <Plus className="w-4 h-4" />
-                                Add Product
-                            </Button>
-                        </DialogTrigger>
+                    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                        <Button
+                            className="bg-[#D81B12] hover:bg-[#9E0F09] rounded-xl shadow-lg shadow-red-100 h-11 px-6 flex items-center gap-2 font-bold text-xs uppercase tracking-widest"
+                            onClick={openAddDialog}
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add Product
+                        </Button>
                         <DialogContent className="sm:max-w-[600px] rounded-[2rem] border-none shadow-lift overflow-hidden p-0">
                             <div className="bg-[#1E293B] p-8 text-white relative">
                                 <div className="absolute right-0 top-0 w-32 h-32 bg-[#D81B12]/10 rounded-full blur-3xl"></div>
                                 <DialogHeader>
-                                    <DialogTitle className="text-2xl font-black tracking-tight">Add New Product</DialogTitle>
+                                    <DialogTitle className="text-2xl font-black tracking-tight">
+                                        {editingProduct ? 'Edit Product Details' : 'Add New Product'}
+                                    </DialogTitle>
                                     <DialogDescription className="text-slate-400 font-medium">
-                                        Fill in the details to list a new product on the marketplace.
+                                        {editingProduct
+                                            ? `Updating specific index data for ${formData.name}.`
+                                            : 'Fill in the details to list a new product on the marketplace.'}
                                     </DialogDescription>
                                 </DialogHeader>
                             </div>
@@ -136,11 +268,17 @@ export default function AdminProductsPage() {
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Product Name</Label>
-                                        <Input id="name" placeholder="E.g. Solar Panel 450W" className="rounded-xl border-slate-100 bg-slate-50 h-11 text-sm font-medium focus:bg-white" />
+                                        <Input
+                                            id="name"
+                                            placeholder="E.g. Solar Panel 450W"
+                                            className="rounded-xl border-slate-100 bg-slate-50 h-11 text-sm font-medium focus:bg-white"
+                                            value={formData.name}
+                                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="category" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Category</Label>
-                                        <Select>
+                                        <Select value={formData.category_id} onValueChange={val => setFormData({ ...formData, category_id: val })}>
                                             <SelectTrigger className="rounded-xl border-slate-100 bg-slate-50 h-11 text-sm font-medium">
                                                 <SelectValue placeholder="Select category" />
                                             </SelectTrigger>
@@ -156,36 +294,87 @@ export default function AdminProductsPage() {
                                 <div className="grid grid-cols-3 gap-6">
                                     <div className="space-y-2">
                                         <Label htmlFor="price_min" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Min Price ($)</Label>
-                                        <Input id="price_min" type="number" placeholder="0.00" className="rounded-xl border-slate-100 bg-slate-50 h-11 text-sm font-medium focus:bg-white" />
+                                        <Input
+                                            id="price_min"
+                                            type="number"
+                                            placeholder="0.00"
+                                            className="rounded-xl border-slate-100 bg-slate-50 h-11 text-sm font-medium focus:bg-white"
+                                            value={formData.price_min}
+                                            onChange={e => setFormData({ ...formData, price_min: e.target.value })}
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="price_max" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Max Price ($)</Label>
-                                        <Input id="price_max" type="number" placeholder="0.00" className="rounded-xl border-slate-100 bg-slate-50 h-11 text-sm font-medium focus:bg-white" />
+                                        <Input
+                                            id="price_max"
+                                            type="number"
+                                            placeholder="0.00"
+                                            className="rounded-xl border-slate-100 bg-slate-50 h-11 text-sm font-medium focus:bg-white"
+                                            value={formData.price_max}
+                                            onChange={e => setFormData({ ...formData, price_max: e.target.value })}
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="min_order" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Min Order Unit</Label>
-                                        <Input id="min_order" placeholder="100 Units" className="rounded-xl border-slate-100 bg-slate-50 h-11 text-sm font-medium focus:bg-white" />
+                                        <Input
+                                            id="min_order"
+                                            placeholder="100 Units"
+                                            className="rounded-xl border-slate-100 bg-slate-50 h-11 text-sm font-medium focus:bg-white"
+                                            value={formData.min_order}
+                                            onChange={e => setFormData({ ...formData, min_order: e.target.value })}
+                                        />
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="supplier" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Supplier Name</Label>
-                                    <Input id="supplier" placeholder="Shenzhen Tech Co." className="rounded-xl border-slate-100 bg-slate-50 h-11 text-sm font-medium focus:bg-white" />
+                                    <Input
+                                        id="supplier"
+                                        placeholder="Shenzhen Tech Co."
+                                        className="rounded-xl border-slate-100 bg-slate-50 h-11 text-sm font-medium focus:bg-white"
+                                        value={formData.supplier}
+                                        onChange={e => setFormData({ ...formData, supplier: e.target.value })}
+                                    />
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="image_url" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Image URL</Label>
-                                    <Input id="image_url" placeholder="https://..." className="rounded-xl border-slate-100 bg-slate-50 h-11 text-sm font-medium focus:bg-white" />
+                                    <Input
+                                        id="image_url"
+                                        placeholder="https://..."
+                                        className="rounded-xl border-slate-100 bg-slate-50 h-11 text-sm font-medium focus:bg-white"
+                                        value={formData.image_url}
+                                        onChange={e => setFormData({ ...formData, image_url: e.target.value })}
+                                    />
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="description" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Description</Label>
-                                    <Textarea id="description" placeholder="Technical specifications..." className="rounded-xl border-slate-100 bg-slate-50 min-h-[100px] text-sm font-medium focus:bg-white resize-none" />
+                                    <Textarea
+                                        id="description"
+                                        placeholder="Technical specifications..."
+                                        className="rounded-xl border-slate-100 bg-slate-50 min-h-[100px] text-sm font-medium focus:bg-white resize-none"
+                                        value={formData.description}
+                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                    />
                                 </div>
                             </div>
                             <div className="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-end gap-3">
-                                <Button variant="ghost" className="rounded-xl font-bold text-xs uppercase tracking-widest">Cancel</Button>
-                                <Button className="bg-[#D81B12] hover:bg-[#9E0F09] rounded-xl shadow-lg shadow-red-100 px-8 font-bold text-xs uppercase tracking-widest h-11">Create Product</Button>
+                                <Button
+                                    variant="ghost"
+                                    className="rounded-xl font-bold text-xs uppercase tracking-widest"
+                                    onClick={() => setDialogOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    className="bg-[#D81B12] hover:bg-[#9E0F09] rounded-xl shadow-lg shadow-red-100 px-8 font-bold text-xs uppercase tracking-widest h-11 flex items-center gap-2"
+                                    onClick={handleSaveProduct}
+                                    disabled={isAdding}
+                                >
+                                    {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                                    {isAdding ? 'Processing...' : (editingProduct ? 'Update Product' : 'Create Product')}
+                                </Button>
                             </div>
                         </DialogContent>
                     </Dialog>
@@ -232,7 +421,7 @@ export default function AdminProductsPage() {
                             <TableRow>
                                 <TableCell colSpan={6} className="h-64 text-center">
                                     <div className="flex flex-col items-center justify-center space-y-4">
-                                        <div className="w-8 h-8 border-4 border-[#D81B12]/20 border-t-[#D81B12] rounded-full animate-spin"></div>
+                                        <Loader2 className="w-8 h-8 text-[#D81B12] animate-spin" />
                                         <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Loading Catalog...</p>
                                     </div>
                                 </TableCell>
@@ -254,7 +443,7 @@ export default function AdminProductsPage() {
                         ) : filteredProducts.map((product) => (
                             <TableRow key={product.id} className="border-slate-50 hover:bg-slate-50/30 transition-colors group">
                                 <TableCell className="py-4 text-center">
-                                    <div className="w-14 h-14 rounded-xl border border-slate-100 overflow-hidden bg-white mx-auto group-hover:scale-110 transition-transform shadow-sm">
+                                    <div className="w-14 h-14 rounded-xl border border-slate-100 overflow-hidden bg-white mx-auto group-hover:scale-110 transition-transform shadow-sm relative">
                                         <img src={product.image_url || "/placeholder.jpg"} alt={product.name} className="w-full h-full object-cover" />
                                     </div>
                                 </TableCell>
@@ -265,14 +454,14 @@ export default function AdminProductsPage() {
                                     </div>
                                 </TableCell>
                                 <TableCell className="py-4">
-                                    <Badge variant="outline" className="rounded-full border-slate-100 bg-slate-50 text-slate-500 text-[10px] font-bold px-3 py-0.5">
+                                    <Badge variant="outline" className="rounded-full border-slate-100 bg-slate-50 text-slate-500 text-[10px] font-bold px-3 py-0.5 whitespace-nowrap">
                                         {(product.categories as any)?.name || 'Uncategorized'}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="py-4">
                                     <div className="flex flex-col">
-                                        <span className="text-sm font-black text-slate-900">${product.price_min?.toFixed(2)} - ${product.price_max?.toFixed(2)}</span>
-                                        <span className="text-[10px] text-slate-400 font-bold uppercase uppercase tracking-wider">{product.currency} / Unit</span>
+                                        <span className="text-sm font-black text-slate-900">${product.price_min?.toFixed(2)} {product.price_max ? `- $${product.price_max.toFixed(2)}` : ''}</span>
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{product.currency} / Unit</span>
                                     </div>
                                 </TableCell>
                                 <TableCell className="py-4">
@@ -294,12 +483,18 @@ export default function AdminProductsPage() {
                                                 <Eye className="w-4 h-4 mr-3 text-slate-400 group-hover:text-[#D81B12] transition-colors" />
                                                 Live Preview
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem className="rounded-xl text-sm font-bold px-4 py-3 cursor-pointer group focus:bg-slate-50">
+                                            <DropdownMenuItem
+                                                className="rounded-xl text-sm font-bold px-4 py-3 cursor-pointer group focus:bg-slate-50"
+                                                onClick={() => openEditDialog(product)}
+                                            >
                                                 <Edit className="w-4 h-4 mr-3 text-slate-400 group-hover:text-[#D81B12] transition-colors" />
                                                 Edit Details
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator className="bg-slate-100 mx-2 my-1" />
-                                            <DropdownMenuItem className="rounded-xl text-sm font-bold text-[#D81B12] px-4 py-3 cursor-pointer focus:bg-red-50">
+                                            <DropdownMenuItem
+                                                className="rounded-xl text-sm font-bold text-[#D81B12] px-4 py-3 cursor-pointer focus:bg-red-50"
+                                                onClick={() => handleDeleteProduct(product.id)}
+                                            >
                                                 <Trash2 className="w-4 h-4 mr-3" />
                                                 Delete Product
                                             </DropdownMenuItem>

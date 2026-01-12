@@ -5,7 +5,12 @@ export function createClient() {
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing Supabase environment variables. Please check your .env.local file.');
+    console.warn('Missing Supabase environment variables. Some features may not work.');
+    // Return a mock client that gracefully handles missing config
+    return createBrowserClient(
+      'https://placeholder.supabase.co',
+      'placeholder-key'
+    );
   }
 
   return createBrowserClient(supabaseUrl, supabaseKey);

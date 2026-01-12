@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useAppContext } from "@/context/AppContext";
 import { CreditCard, Truck, ShieldCheck, CheckCircle, ChevronRight, MapPin, Phone, Building, Wallet, ArrowLeft } from "lucide-react";
 import Link from "next/link";

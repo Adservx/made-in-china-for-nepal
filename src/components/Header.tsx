@@ -6,23 +6,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   ShoppingCart,
-  User,
   Menu,
   X,
-  LogOut,
-  UserCircle,
-  TrendingUp,
-  ChevronRight,
   Zap,
-  Globe,
-  LayoutGrid
 } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import { useRouter, useSearchParams } from "next/navigation";
-import { products } from "@/data/products";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export default function Header() {
+import { Suspense } from "react";
+
+function HeaderInner() {
   const { cart, user, isAdmin } = useAppContext();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -30,6 +24,10 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+
+  useEffect(() => {
+    setSearchQuery(searchParams.get("q") || "");
+  }, [searchParams]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,9 +38,6 @@ export default function Header() {
   }, []);
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-
-  // Prepare products for the ticker - reduce cloning for performance
-  const tickerProducts = [...products.slice(0, 8)];
 
   return (
     <motion.header
@@ -219,6 +214,14 @@ export default function Header() {
         )}
       </AnimatePresence>
     </motion.header>
+  );
+}
+
+export default function Header() {
+  return (
+    <Suspense fallback={null}>
+      <HeaderInner />
+    </Suspense>
   );
 }
 

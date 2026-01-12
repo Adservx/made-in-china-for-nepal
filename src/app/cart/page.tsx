@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import Link from "next/link";
 import { Trash2, ShoppingCart, Minus, Plus, ArrowLeft, ShieldCheck, ChevronRight, Info } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";

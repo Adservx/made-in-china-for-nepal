@@ -15,7 +15,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   const name = product.name;
   const rating = product.rating || 0;
   const category = (product.categories?.name) || product.category || "General";
-  const price = product.price_min ? `$${product.price_min} - $${product.price_max}` : (product.price || "Contact for Price");
+  const price = product.price_min
+    ? `$${product.price_min}${product.price_max ? ` - $${product.price_max}` : ''}`
+    : (product.price || "Contact for Price");
   const moq = product.min_order || product.minOrder;
   const supplier = product.supplier;
 

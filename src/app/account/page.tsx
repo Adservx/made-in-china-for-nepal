@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useAppContext } from "@/context/AppContext";
 import { User, Package, FileText, Settings, LogOut, ChevronRight, Building, Mail, Phone, MapPin, Star } from "lucide-react";
 import Link from "next/link";

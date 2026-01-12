@@ -2,13 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Product } from '@/data/products';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Star, ShieldCheck, TrendingUp, ArrowRight, ArrowUpRight, Box } from 'lucide-react';
 
 interface TrendingSliderProps {
-    products: Product[];
+    products: any[];
 }
 
 const TrendingSlider: React.FC<TrendingSliderProps> = ({ products }) => {
@@ -18,6 +17,8 @@ const TrendingSlider: React.FC<TrendingSliderProps> = ({ products }) => {
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    if (!products || products.length === 0) return null;
 
     // Double the products for a seamless infinite loop
     const displayProducts = [...products, ...products];
@@ -73,57 +74,63 @@ const TrendingSlider: React.FC<TrendingSliderProps> = ({ products }) => {
                         style={{ willChange: "transform" }}
                         animate={isMounted ? { x: ["0%", "-50%"] } : { x: "0%" }}
                         transition={{
-                            duration: products.length * 8, // Slightly slower for smoother perception
+                            duration: Math.max(20, products.length * 5),
                             ease: "linear",
                             repeat: Infinity,
                         }}
                     >
-                        {displayProducts.map((product, idx) => (
-                            <div key={`${product.id}-${idx}`} className="flex-shrink-0 w-[420px] group">
-                                <Link href={`/product/${product.id}`} className="block no-underline">
-                                    <div className="relative aspect-[16/10] rounded-[2.5rem] overflow-hidden bg-slate-50 border border-slate-100 transition-shadow duration-500 group-hover:shadow-2xl">
-                                        <Image
-                                            src={product.image}
-                                            alt={product.name}
-                                            fill
-                                            sizes="420px"
-                                            className="object-cover transform-gpu"
-                                            loading={idx < 4 ? "eager" : "lazy"}
-                                        />
+                        {displayProducts.map((product, idx) => {
+                            const categoryName = product.categories?.name || "General";
+                            const price = product.price_min || 0;
+                            const currency = product.currency || "USD";
 
-                                        {/* Simplified Overlay - Removed Blur for Performance */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+                            return (
+                                <div key={`${product.id}-${idx}`} className="flex-shrink-0 w-[420px] group">
+                                    <Link href={`/product/${product.id}`} className="block no-underline">
+                                        <div className="relative aspect-[16/10] rounded-[2.5rem] overflow-hidden bg-slate-50 border border-slate-100 transition-shadow duration-500 group-hover:shadow-2xl">
+                                            <Image
+                                                src={product.image_url || "/placeholder.jpg"}
+                                                alt={product.name}
+                                                fill
+                                                sizes="420px"
+                                                className="object-cover transform-gpu"
+                                                priority={idx < 4}
+                                            />
 
-                                        <div className="absolute top-6 left-6">
-                                            <div className="px-3 py-1.5 rounded-lg bg-slate-950/40 border border-white/10 flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></div>
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-white">{product.category}</span>
-                                            </div>
-                                        </div>
+                                            {/* Simplified Overlay */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
 
-                                        <div className="absolute bottom-8 left-8 right-8">
-                                            <div className="flex items-center gap-3 text-rose-500 mb-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 text-xs">
-                                                <ShieldCheck size={12} fill="currentColor" className="text-emerald-500 fill-emerald-500" />
-                                                <span className="text-[8px] font-black text-emerald-400 uppercase tracking-[0.2em]">Verified Manufacturer</span>
-                                            </div>
-                                            <h3 className="text-xl font-bold text-white tracking-tight leading-tight mb-4 line-clamp-1">
-                                                {product.name}
-                                            </h3>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex flex-col">
-                                                    <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">Index Price</span>
-                                                    <p className="text-lg font-bold text-white tracking-tight">{product.price.split(' ')[1]}<span className="text-[9px] ml-1 text-white/40 font-normal">USD</span></p>
-                                                </div>
-                                                <div className="flex flex-col items-end">
-                                                    <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.2em] mb-1 text-right">Min Order</span>
-                                                    <p className="text-sm font-bold text-white tracking-tight">{product.minOrder} Units</p>
+                                            <div className="absolute top-6 left-6">
+                                                <div className="px-3 py-1.5 rounded-lg bg-slate-950/40 border border-white/10 flex items-center gap-2">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></div>
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-white">{categoryName}</span>
                                                 </div>
                                             </div>
+
+                                            <div className="absolute bottom-8 left-8 right-8">
+                                                <div className="flex items-center gap-3 text-rose-500 mb-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 text-xs">
+                                                    <ShieldCheck size={12} className="text-emerald-500" />
+                                                    <span className="text-[8px] font-black text-emerald-400 uppercase tracking-[0.2em]">Verified Manufacturer</span>
+                                                </div>
+                                                <h3 className="text-xl font-bold text-white tracking-tight leading-tight mb-4 line-clamp-1">
+                                                    {product.name}
+                                                </h3>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">Index Price</span>
+                                                        <p className="text-lg font-bold text-white tracking-tight">{price.toFixed(2)}<span className="text-[9px] ml-1 text-white/40 font-normal">{currency}</span></p>
+                                                    </div>
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.2em] mb-1 text-right">Min Order</span>
+                                                        <p className="text-sm font-bold text-white tracking-tight">{product.min_order}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </Link>
-                            </div>
-                        ))}
+                                    </Link>
+                                </div>
+                            );
+                        })}
                     </motion.div>
                 </div>
             </div>

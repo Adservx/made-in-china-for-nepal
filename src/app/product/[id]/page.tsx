@@ -1,32 +1,78 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { products } from "@/data/products";
-import { Star, ShieldCheck, MessageCircle, MapPin, CheckCircle, Award, ShoppingCart, Minus, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Star, ShieldCheck, MessageCircle, MapPin, CheckCircle, Award, ShoppingCart, Minus, Plus, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, useParams } from "next/navigation";
-import { useState } from "react";
 import { useAppContext } from "@/context/AppContext";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ProductPage() {
   const params = useParams();
   const id = params?.id as string;
-  const product = products.find((p) => p.id === id);
   const { addToCart } = useAppContext();
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchProduct() {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*, categories(name)")
+          .eq("id", id)
+          .single();
+
+        if (error || !data) {
+          console.error("Error fetching product:", error);
+        } else {
+          setProduct(data);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) {
+      fetchProduct();
+    }
+  }, [id, supabase]);
+
+  if (loading) {
+    return (
+      <div className="bg-white min-h-screen pt-[100px] flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-12 h-12 text-rose-600 animate-spin" />
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Authenticating Resource Details...</p>
+      </div>
+    );
+  }
 
   if (!product) {
     notFound();
   }
 
   const handleAddToCart = () => {
+    // Map DB product back to AppContext expected format if necessary, 
+    // but AppContext should ideally handle both or be updated.
+    // For now, let's just pass the DB object which has enough info.
     addToCart(product, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
+
+  const priceDisplay = product.price_min
+    ? `${product.currency || 'USD'} ${product.price_min.toFixed(2)}${product.price_max ? ` - ${product.price_max.toFixed(2)}` : ''}`
+    : "Contact for Price";
+
+  const categoryName = product.categories?.name || "General";
 
   return (
     <div className="bg-white min-h-screen pt-[100px] pb-20">
@@ -35,7 +81,7 @@ export default function ProductPage() {
         <nav aria-label="breadcrumb" className="mb-8 fade-in-up">
           <ol className="breadcrumb bg-transparent p-0 m-0 text-[10px] font-bold uppercase tracking-[0.2em]">
             <li className="breadcrumb-item"><Link href="/" className="text-slate-400 no-underline hover:text-[#D81B12] transition-colors">Home</Link></li>
-            <li className="breadcrumb-item"><Link href={`/category/${product.category.toLowerCase().replace(/ & /g, "-").replace(/ /g, "-")}`} className="text-slate-400 no-underline hover:text-[#D81B12] transition-colors">{product.category}</Link></li>
+            <li className="breadcrumb-item"><Link href="/products" className="text-slate-400 no-underline hover:text-[#D81B12] transition-colors">Procurement</Link></li>
             <li className="breadcrumb-item active text-[#D81B12]" aria-current="page">{product.name}</li>
           </ol>
         </nav>
@@ -47,7 +93,7 @@ export default function ProductPage() {
               <div className="bg-slate-50 rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-premium mb-6 group">
                 <div className="position-relative w-100 h-[500px]">
                   <Image
-                    src={product.image}
+                    src={product.image_url || "/placeholder.jpg"}
                     alt={product.name}
                     fill
                     className="object-contain p-8 group-hover:scale-105 transition-transform duration-700"
@@ -60,7 +106,7 @@ export default function ProductPage() {
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="aspect-square bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden relative cursor-pointer hover:border-[#D81B12] transition-all group shadow-sm">
                     <Image
-                      src={product.image}
+                      src={product.image_url || "/placeholder.jpg"}
                       alt=""
                       fill
                       className="object-contain p-2 opacity-60 group-hover:opacity-100 transition-opacity"
@@ -106,7 +152,7 @@ export default function ProductPage() {
                   <div className="col-md-7">
                     <p className="text-[#D81B12] text-[10px] font-black uppercase tracking-[0.3em] mb-2">Wholesale Pricing</p>
                     <div className="flex items-baseline gap-2 mb-1">
-                      <span className="text-4xl font-black">{product.price}</span>
+                      <span className="text-4xl font-black">{priceDisplay}</span>
                       <span className="text-white/40 text-sm font-bold">/ Unit</span>
                     </div>
                     <p className="text-white/40 text-xs font-medium mb-0 italic">FOB China Port • Tax exclusive</p>
@@ -114,7 +160,7 @@ export default function ProductPage() {
                   <div className="col-md-5">
                     <div className="bg-white/5 rounded-2xl p-4 border border-white/10 backdrop-blur-sm">
                       <p className="text-white/40 text-[9px] font-black uppercase tracking-widest mb-1">Min. Order</p>
-                      <p className="text-xl font-black mb-0">{product.minOrder}</p>
+                      <p className="text-xl font-black mb-0">{product.min_order}</p>
                     </div>
                   </div>
                 </div>
@@ -215,7 +261,7 @@ export default function ProductPage() {
             <div className="col-lg-7">
               <h3 className="text-2xl font-black text-slate-900 mb-6 tracking-tight">Industrial Performance & Build</h3>
               <p className="text-slate-500 leading-relaxed mb-8">
-                Designed for extreme conditions in Nepal, this {product.name} integrates advanced {product.category} technologies.
+                Designed for extreme conditions in Nepal, this {product.name} integrates advanced {categoryName} technologies.
                 Built to international ISO standards with multi-layer quality assurance protocols throughout the production phase.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
