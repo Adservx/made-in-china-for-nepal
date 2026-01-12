@@ -18,15 +18,18 @@ import {
   LayoutGrid
 } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
+import { useRouter, useSearchParams } from "next/navigation";
 import { products } from "@/data/products";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Header() {
-  const { cart, user, logout } = useAppContext();
+  const { cart, user, isAdmin } = useAppContext();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -116,6 +119,14 @@ export default function Header() {
               <div className="absolute inset-0 rounded-full border transition-all duration-300 bg-slate-50 border-slate-200 group-hover:border-slate-300 group-hover:bg-slate-100/50"></div>
               <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors group-hover:scale-110 duration-300 text-slate-400 group-hover:text-rose-600" />
               <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    router.push(`/products?q=${encodeURIComponent(searchQuery)}`);
+                    setSearchFocused(false);
+                  }
+                }}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
                 className="w-full h-full bg-transparent border-none focus:ring-0 text-[11px] font-medium pl-10 pr-4 rounded-full text-slate-950 placeholder:text-slate-500"
@@ -140,12 +151,23 @@ export default function Header() {
               <div className="h-6 w-[1px] bg-slate-200 hidden sm:block mx-1"></div>
 
               {user ? (
-                <Link href="/account" className="flex items-center gap-3 p-0.5 rounded-full hover:opacity-80 transition-opacity no-underline group">
-                  <Avatar className="h-9 w-9 border border-rose-600/30 group-hover:border-rose-600 transition-colors">
-                    <AvatarImage src={user.user_metadata?.avatar_url} />
-                    <AvatarFallback className="bg-rose-600 text-white font-bold text-[10px]">{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                </Link>
+                <div className="flex items-center gap-4">
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      className="text-[10px] font-black uppercase tracking-[0.15em] no-underline transition-all relative group text-emerald-600 hover:text-emerald-700"
+                    >
+                      <span className="relative z-10 transition-colors duration-300">Admin Panel</span>
+                      <span className="absolute -bottom-1 left-0 w-full h-[1px] transition-all duration-300 origin-left scale-x-[0.2] group-hover:scale-x-100 bg-emerald-600"></span>
+                    </Link>
+                  )}
+                  <Link href="/account" className="flex items-center gap-3 p-0.5 rounded-full hover:opacity-80 transition-opacity no-underline group">
+                    <Avatar className="h-9 w-9 border border-rose-600/30 group-hover:border-rose-600 transition-colors">
+                      <AvatarImage src={user.user_metadata?.avatar_url} />
+                      <AvatarFallback className="bg-rose-600 text-white font-bold text-[10px]">{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  </Link>
+                </div>
               ) : (
                 <div className="flex items-center gap-4">
                   <Link

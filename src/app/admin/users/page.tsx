@@ -77,6 +77,29 @@ export default function AdminUsersPage() {
         }
     };
 
+    const updateRole = async (userId: string, newRole: string) => {
+        try {
+            const { error } = await supabase
+                .from("profiles")
+                .update({ role: newRole })
+                .eq("id", userId);
+
+            if (error) throw error;
+
+            toast({
+                title: "Role updated",
+                description: `User role has been updated to ${newRole}.`,
+            });
+            fetchProfiles();
+        } catch (error: any) {
+            toast({
+                title: "Error updating role",
+                description: error.message,
+                variant: "destructive",
+            });
+        }
+    };
+
     const filteredProfiles = profiles.filter(p =>
         (p.full_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
         (p.company_name?.toLowerCase() || "").includes(searchTerm.toLowerCase())
@@ -138,11 +161,25 @@ export default function AdminUsersPage() {
                             </TableHeader>
                             <TableBody>
                                 {loading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="h-32 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">
-                                            Loading Users...
-                                        </TableCell>
-                                    </TableRow>
+                                    <>
+                                        {[1, 2, 3, 4, 5].map((i) => (
+                                            <TableRow key={i} className="border-slate-50">
+                                                <TableCell className="py-4 px-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-10 w-10 rounded-xl bg-slate-100 shimmer"></div>
+                                                        <div className="space-y-2">
+                                                            <div className="h-4 w-32 bg-slate-100 rounded shimmer"></div>
+                                                            <div className="h-3 w-20 bg-slate-50 rounded shimmer"></div>
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4"><div className="h-4 w-16 bg-slate-100 rounded shimmer"></div></TableCell>
+                                                <TableCell className="py-4"><div className="h-4 w-24 bg-slate-100 rounded shimmer"></div></TableCell>
+                                                <TableCell className="py-4"><div className="h-5 w-16 bg-slate-100 rounded-full shimmer"></div></TableCell>
+                                                <TableCell className="text-right py-4 px-6"><div className="h-8 w-8 bg-slate-50 rounded ml-auto shimmer"></div></TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </>
                                 ) : filteredProfiles.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={5} className="h-32 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">
@@ -194,10 +231,22 @@ export default function AdminUsersPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="w-48 rounded-xl border-slate-100 shadow-premium p-1">
-                                                    <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-3 py-2">Actions</DropdownMenuLabel>
-                                                    <DropdownMenuItem className="rounded-lg text-sm font-medium px-3 py-2 cursor-pointer focus:bg-slate-50">View Profile</DropdownMenuItem>
-                                                    <DropdownMenuItem className="rounded-lg text-sm font-medium px-3 py-2 cursor-pointer focus:bg-slate-50">Edit User</DropdownMenuItem>
                                                     <DropdownMenuSeparator className="bg-slate-50" />
+                                                    {profile.role !== 'admin' && profile.role !== 'super_admin' ? (
+                                                        <DropdownMenuItem
+                                                            className="rounded-lg text-sm font-bold text-amber-600 px-3 py-2 cursor-pointer focus:bg-amber-50"
+                                                            onClick={() => updateRole(profile.id, 'admin')}
+                                                        >
+                                                            Make Admin
+                                                        </DropdownMenuItem>
+                                                    ) : (
+                                                        <DropdownMenuItem
+                                                            className="rounded-lg text-sm font-bold text-slate-600 px-3 py-2 cursor-pointer focus:bg-slate-50"
+                                                            onClick={() => updateRole(profile.id, 'user')}
+                                                        >
+                                                            Remove Admin
+                                                        </DropdownMenuItem>
+                                                    )}
                                                     <DropdownMenuItem className="rounded-lg text-sm font-bold text-[#D81B12] px-3 py-2 cursor-pointer focus:bg-red-50">Suspend User</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

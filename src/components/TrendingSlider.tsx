@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Product } from '@/data/products';
 import Link from 'next/link';
@@ -12,6 +12,13 @@ interface TrendingSliderProps {
 }
 
 const TrendingSlider: React.FC<TrendingSliderProps> = ({ products }) => {
+    // Track if component has mounted to prevent hydration mismatch
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     // Double the products for a seamless infinite loop
     const displayProducts = [...products, ...products];
 
@@ -64,7 +71,7 @@ const TrendingSlider: React.FC<TrendingSliderProps> = ({ products }) => {
                     <motion.div
                         className="flex gap-8 pr-8 shrink-0 transform-gpu"
                         style={{ willChange: "transform" }}
-                        animate={{ x: ["0%", "-50%"] }}
+                        animate={isMounted ? { x: ["0%", "-50%"] } : { x: "0%" }}
                         transition={{
                             duration: products.length * 8, // Slightly slower for smoother perception
                             ease: "linear",

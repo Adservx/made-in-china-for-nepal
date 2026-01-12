@@ -46,6 +46,8 @@
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-shimmer: shimmer 2s infinite linear;
+  --animate-loading-bar: loading-bar 15s cubic-bezier(0, 0, 0, 1) forwards;
 
   @keyframes accordion-down {
     from {
@@ -64,6 +66,30 @@
 
     to {
       height: 0;
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  @keyframes loading-bar {
+    0% {
+      transform: translateX(-100%);
+    }
+
+    50% {
+      transform: translateX(-30%);
+    }
+
+    100% {
+      transform: translateX(0);
     }
   }
 }
@@ -266,4 +292,22 @@
 /* Card Alignment Helper */
 .card-stack {
   @apply flex flex-col h-full border border-slate-200/50 bg-white rounded-[2.5rem] overflow-hidden transition-all duration-500;
+}
+
+/* Shimmer Effect */
+.shimmer {
+  background: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+.loading-bar {
+  @apply fixed top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-rose-500 via-rose-600 to-rose-400 z-[9999];
+  transform-origin: left;
+  animation: loading-bar 10s cubic-bezier(0.1, 0.5, 0.5, 1) forwards;
+}
+
+.loading-bar::after {
+  content: '';
+  @apply absolute top-0 right-0 h-full w-24 bg-white/30 blur-sm;
 }

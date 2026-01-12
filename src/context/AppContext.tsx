@@ -125,7 +125,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setProfile(null);
   };
 
-  const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
+  const isAdmin =
+    profile?.role === 'admin' ||
+    profile?.role === 'super_admin' ||
+    user?.app_metadata?.role === 'admin' ||
+    user?.user_metadata?.role === 'admin';
 
   return (
     <AppContext.Provider

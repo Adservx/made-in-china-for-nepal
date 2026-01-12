@@ -2,18 +2,36 @@
 
 import ProductCard from "@/components/ProductCard";
 import { products, categories } from "@/data/products";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Filter, Zap, ChevronRight, Search } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function ProductsPage() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState("recommended");
+    const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
 
-    const filteredProducts = selectedCategory
-        ? products.filter((p) => p.category === selectedCategory)
-        : products;
+    useEffect(() => {
+        setSearchQuery(searchParams.get("q") || "");
+    }, [searchParams]);
+
+    const filteredProducts = products.filter((p) => {
+        const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
+        const matchesSearch = searchQuery
+            ? p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.supplier.toLowerCase().includes(searchQuery.toLowerCase())
+            : true;
+        return matchesCategory && matchesSearch;
+    }).sort((a, b) => {
+        if (sortBy === "price-low") return a.price - b.price;
+        if (sortBy === "price-high") return b.price - a.price;
+        return 0;
+    });
 
     return (
         <div className="bg-white min-h-screen pt-32 pb-24">
@@ -102,7 +120,18 @@ export default function ProductsPage() {
                             <div className="flex items-center gap-4 w-full sm:w-auto">
                                 <div className="relative group flex-1 sm:w-64">
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                    <input type="text" placeholder="Search catalog..." className="w-full bg-slate-50 border border-slate-200 rounded-full py-2.5 pl-11 pr-4 text-xs font-bold focus:outline-none focus:border-rose-500/50 focus:bg-white transition-all shadow-inner" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search catalog..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                router.push(`/products?q=${encodeURIComponent(searchQuery)}`);
+                                            }
+                                        }}
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-full py-2.5 pl-11 pr-4 text-xs font-bold focus:outline-none focus:border-rose-500/50 focus:bg-white transition-all shadow-inner"
+                                    />
                                 </div>
                                 <select
                                     className="bg-slate-50 border border-slate-200 rounded-full px-5 py-2.5 text-xs font-bold text-slate-600 outline-none focus:border-rose-500/50 shadow-inner cursor-pointer appearance-none"

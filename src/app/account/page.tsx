@@ -56,7 +56,7 @@ export default function AccountPage() {
                                     </div>
                                 </div>
                                 <h2 className="text-xl font-black text-slate-900 mb-1">{profile?.full_name || "Valued Merchant"}</h2>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{profile?.role || "User"}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{profile?.role || user.user_metadata?.role || "User"}</p>
 
                                 <div className="mt-8 space-y-2">
                                     {navItems.map((item) => (

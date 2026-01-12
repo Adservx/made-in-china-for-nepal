@@ -4,11 +4,24 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import ProductCard from "@/components/ProductCard";
 import TrendingSlider from "@/components/TrendingSlider";
+import { useRouter, useSearchParams } from "next/navigation";
 import { products, categories } from "@/data/products";
 import { ChevronRight, Zap, ShieldCheck, Award, Globe, ArrowRight, Search, Truck } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("q") || "";
+
+  const filteredProducts = products.filter((p) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q) ||
+      p.supplier.toLowerCase().includes(q)
+    );
+  });
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -103,9 +116,9 @@ export default function Home() {
         {/* Product Priority: The Catalog Ecosystem */}
         <section id="catalog" className="py-0 bg-white relative">
           <div className="container-fluid-custom">
-            <div className="flex flex-col lg:flex-row gap-16 lg:gap-24">
+            <div className="flex flex-col lg:flex-row gap-16 lg:gap-12">
               {/* Refined B2B Sidebar */}
-              <aside className="lg:w-80 shrink-0">
+              <aside className="lg:w-72 shrink-0">
                 <motion.div
                   initial="hidden"
                   whileInView="visible"
@@ -236,7 +249,7 @@ export default function Home() {
                   }}
                   className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8"
                 >
-                  {products.slice(0, 9).map((product, idx) => (
+                  {filteredProducts.slice(0, 9).map((product, idx) => (
                     <motion.div
                       key={product.id}
                       variants={itemVariants}
@@ -244,6 +257,11 @@ export default function Home() {
                       <ProductCard product={product} />
                     </motion.div>
                   ))}
+                  {filteredProducts.length === 0 && (
+                    <div className="col-span-full py-20 text-center bg-slate-50 rounded-[3rem] border border-slate-100">
+                      <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No matching supplies found</p>
+                    </div>
+                  )}
                 </motion.div>
               </div>
             </div>
