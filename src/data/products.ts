@@ -17,7 +17,7 @@ export const products: Product[] = [
     price: "USD 80.00 - 120.00",
     minOrder: "50 Pieces",
     supplier: "Jiangsu Green Energy Co., Ltd.",
-    image: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?q=80&w=800&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1668097613572-40b7c11c8727?auto=format&fit=crop&q=80&w=1080",
     rating: 4.8,
   },
   {
@@ -37,7 +37,7 @@ export const products: Product[] = [
     price: "USD 200.00 - 350.00",
     minOrder: "10 Pieces",
     supplier: "Zhejiang Mobility Pro",
-    image: "https://images.unsplash.com/photo-1627471018956-6f7647970a27?q=80&w=800&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1664307015175-830f9ddf7be6?auto=format&fit=crop&q=80&w=1080",
     rating: 4.7,
   },
   {
@@ -77,7 +77,7 @@ export const products: Product[] = [
     price: "USD 1500.00 - 3000.00",
     minOrder: "1 Set",
     supplier: "Shanghai PackTech Co.",
-    image: "https://images.unsplash.com/photo-1563911302283-d2bc129e7570?q=80&w=800&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1649715985821-9a25b85bfc83?auto=format&fit=crop&q=80&w=1080",
     rating: 4.8,
   },
   {
@@ -87,7 +87,7 @@ export const products: Product[] = [
     price: "USD 3.00 - 6.00",
     minOrder: "200 Pieces",
     supplier: "Shandong Safety Gear",
-    image: "https://images.unsplash.com/photo-1589793907316-f94025b46850?q=80&w=800&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1646227655718-dd721b681d91?auto=format&fit=crop&q=80&w=1080",
     rating: 4.4,
   },
   {
@@ -97,7 +97,7 @@ export const products: Product[] = [
     price: "USD 300.00 - 800.00",
     minOrder: "2 Pieces",
     supplier: "Ningbo Hydraulic Solutions",
-    image: "https://images.unsplash.com/photo-1581092162384-8987c1d64718?q=80&w=800&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1720670996646-2f5d69a10ee7?auto=format&fit=crop&q=80&w=1080",
     rating: 4.7,
   },
   {
@@ -117,7 +117,7 @@ export const products: Product[] = [
     price: "USD 150.00 - 400.00",
     minOrder: "10 Units",
     supplier: "Beijing MedTech Corp",
-    image: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?q=80&w=800&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1630128295920-627fb9aff5a4?auto=format&fit=crop&q=80&w=1080",
     rating: 4.8,
   },
   {
@@ -127,7 +127,7 @@ export const products: Product[] = [
     price: "USD 4000.00 - 12000.00",
     minOrder: "1 Set",
     supplier: "Dalian Precision Machinery",
-    image: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?q=80&w=800&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1666618090858-fbcee636bd3e?auto=format&fit=crop&q=80&w=1080",
     rating: 5.0,
   },
   {
@@ -137,7 +137,7 @@ export const products: Product[] = [
     price: "USD 0.20 - 0.50 / Kg",
     minOrder: "5 Tons",
     supplier: "Guangdong BuildFast Co.",
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1575493438282-4e0fb32d1bdd?auto=format&fit=crop&q=80&w=1080",
     rating: 4.6,
   },
   {
@@ -147,7 +147,7 @@ export const products: Product[] = [
     price: "USD 8000.00 - 15000.00",
     minOrder: "1 Unit",
     supplier: "Anhui Forklift Group",
-    image: "https://images.unsplash.com/photo-1573033261053-066e0766487e?q=80&w=800&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1532635026-d12867005472?auto=format&fit=crop&q=80&w=1080",
     rating: 4.9,
   },
   {
@@ -157,7 +157,7 @@ export const products: Product[] = [
     price: "USD 5.00 - 12.00",
     minOrder: "200 Sets",
     supplier: "Guangzhou Leather Artisans",
-    image: "https://images.unsplash.com/photo-1549439602-43ebcb2327af?q=80&w=800&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1637868796504-32f45a96d5a0?auto=format&fit=crop&q=80&w=1080",
     rating: 4.5,
   },
 ];

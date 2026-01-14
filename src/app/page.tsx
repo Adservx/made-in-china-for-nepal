@@ -11,6 +11,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Suspense } from "react";
 
+const supabase = createClient();
+
 function HomeContent() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
@@ -19,24 +21,28 @@ function HomeContent() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const supabase = createClient();
-
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
+      console.log("[Homepage] Starting data fetch...");
+      console.log("[Homepage] Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
       try {
         // Fetch categories
-        const { data: catData } = await supabase
+        const { data: catData, error: catError } = await supabase
           .from("categories")
           .select("*")
           .order("name");
 
+        console.log("[Homepage] Categories result:", catData, catError);
+
         // Fetch products
-        const { data: prodData } = await supabase
+        const { data: prodData, error: prodError } = await supabase
           .from("products")
           .select("*, categories(name)")
           .eq("is_active", true)
           .order("created_at", { ascending: false });
+
+        console.log("[Homepage] Products result:", prodData, prodError);
 
         if (catData) setCategories(catData);
         if (prodData) setProducts(prodData);
@@ -47,7 +53,7 @@ function HomeContent() {
       }
     }
     fetchData();
-  }, [supabase]);
+  }, []);
 
   const filteredProducts = products.filter((p) => {
     if (!searchQuery) return true;

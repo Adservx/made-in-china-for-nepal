@@ -60,6 +60,26 @@ A premium B2B digital bridge connecting China's elite manufacturing sector direc
 
 The project is optimized for deployment on [Vercel](https://vercel.com).
 
+### Deployment Checklist
+
+1. **Push to GitHub**: Ensure your latest code is pushed to your GitHub repository.
+2. **Import to Vercel**: 
+   - Go to Vercel Dashboard
+   - Click "Add New..." -> "Project"
+   - Import your repository
+3. **Configure Environment Variables**:
+   Add the following variables in the "Environment Variables" section during import:
+   - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase Project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase Public API Key
+   
+   *(You can copy these values from your local `.env.local` file)*
+
+4. **Deploy**: Click "Deploy" and wait for the build to complete.
+
+### Post-Deployment
+- Go to your Supabase Dashboard > Authentication > URL Configuration
+- Add your new Vercel production URL (e.g., `https://your-project.vercel.app`) to the "Site URL" and "Redirect URLs" list to ensure authentication works correctly.
+
 ## 📄 License
 
 This project is private and all rights are reserved.

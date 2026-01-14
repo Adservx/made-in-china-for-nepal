@@ -9,6 +9,8 @@ import { motion } from "framer-motion";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+const supabase = createClient();
+
 function ProductsPageContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -18,8 +20,6 @@ function ProductsPageContent() {
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState("recommended");
     const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-
-    const supabase = createClient();
 
     useEffect(() => {
         setSearchQuery(searchParams.get("q") || "");
@@ -69,7 +69,7 @@ function ProductsPageContent() {
         }
 
         fetchData();
-    }, [selectedCategory, searchQuery, sortBy, supabase]);
+    }, [selectedCategory, searchQuery, sortBy]);
 
     return (
         <div className="bg-white min-h-screen pt-32 pb-24">
